@@ -7,7 +7,11 @@ void Application::InitVariables(void)
 	vector3 v3Target = ZERO_V3;
 	vector3 v3Upward = AXIS_Y;
 	m_pCameraMngr->SetPositionTargetAndUpward(v3Position, v3Target, v3Upward);
-	m_pModelMngr->LoadModel(m_sSteve);
+
+	//Allocate the memory for the Meshes
+	m_pMesh = new MyMesh();
+	m_pMesh->GenerateCube(1.0f, C_BLACK);
+		
 }
 void Application::Update(void)
 {
@@ -31,21 +35,31 @@ void Application::Display(void)
 	// Clear the screen
 	ClearScreen();
 
-	matrix4 m4View = m_pCameraMngr->GetViewMatrix();
+	//Calculate the model, view and projection matrix
 	matrix4 m4Projection = m_pCameraMngr->GetProjectionMatrix();
+	matrix4 m4View = m_pCameraMngr->GetViewMatrix();
+
+	//static variable is only created once
+	static float delta = 0;
+
+	//moves the object to the right and up and down based on a sin curve
+	matrix4 m4Movement = glm::translate(IDENTITY_M4, vector3(delta, glm::sin(delta), 0));
+	//increments the value
+	delta += 0.1;
 
 
 
-	//sets the orientation of the model equal to the matrix of the quaternion which has it's value set in AppClassControls	
-	m_m4Model = ToMatrix4(m_qOrientation);
-	
-	
 	/*
-	* The following line was replaced by the model manager so we can see a model instead of a cone
+	//puts the object in the center of the screen
+	matrix4 parentSpace = glm::translate(m4Movement, vector3(0, 0, 0));
+	matrix4 m4Translate = glm::translate(parentSpace, vector3(1, 0, 0));
 	*/
-	//m_pMesh->Render(m4Projection, m4View, ToMatrix4(m_m4Model));
-	m_pModelMngr->AddModelToRenderList(m_sSteve, m_m4Model);
 
+	//rendering 4 cubes in a connected shape
+	m_pMesh->Render(m4Projection, m4View, glm::translate(m4Movement, vector3(0, 0, 0)));
+	m_pMesh->Render(m4Projection, m4View, glm::translate(m4Movement, vector3(1.0, 0, 0)));
+	m_pMesh->Render(m4Projection, m4View, glm::translate(m4Movement, vector3(1.0, 1.0, 0)));
+	m_pMesh->Render(m4Projection, m4View, glm::translate(m4Movement, vector3(2.0, 1.0, 0)));
 
 	// draw a skybox
 	m_pModelMngr->AddSkyboxToRenderList();
@@ -64,6 +78,9 @@ void Application::Display(void)
 }
 void Application::Release(void)
 {
+	//Release meshes
+	SafeDelete(m_pMesh);
+
 	//release GUI
 	ShutdownGUI();
 }

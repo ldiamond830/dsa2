@@ -236,8 +236,41 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 	Release();
 	Init();
 
+
+	float verticalTheta = 0.0f;
+	float horizontalTheta = 0.0f;
+	GLfloat verticalDelta = static_cast<GLfloat>(2.0 * PI / static_cast<GLfloat>(a_nSubdivisionsA));
+	GLfloat horizontalDelta = static_cast<GLfloat>(2.0 * PI / static_cast<GLfloat>(a_nSubdivisionsB));
 	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+	std::vector<std::vector<vector3>> rings;
+	std::vector<vector3> ringCenters;
+	
+	for (int i = 0; i < a_nSubdivisionsA; i++)
+	{
+		rings.push_back (std::vector<vector3>());
+	}
+
+	for (int i = 0; i < a_nSubdivisionsA; i++)
+	{
+		vector3 ringCenter = vector3(cos(verticalTheta) * a_fInnerRadius, sin(verticalTheta) * a_fInnerRadius, 0.0f);
+
+		verticalTheta += verticalDelta;
+		ringCenters.push_back(ringCenter);
+	}
+
+	for (int i = 0; i < a_nSubdivisionsA; i++) 
+	{
+		for (int j = 0; j < a_nSubdivisionsB; j++) 
+		{
+			vector3 point = ringCenters[i] + vector3(cos(horizontalTheta) * a_fInnerRadius, sin(horizontalTheta) * a_fInnerRadius, 0.0f);
+			rings[i].push_back(point);
+			horizontalTheta += horizontalDelta;
+		}
+
+	}
+	
+	
+	
 	// -------------------------------
 
 	// Adding information about color
@@ -262,7 +295,39 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	/*
+	std::vector<vector3> currentRing;
+	std::vector<vector3> nextRing;
+
+	GLfloat theta = 0;
+	GLfloat delta = static_cast<GLfloat>(2.0 * PI / static_cast<GLfloat>(a_nSubdivisions));
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		vector3 currentRingPoint = vector3(cos(theta) * a_fRadius, sin(theta) * a_fRadius, 0.0f);
+		currentRing.push_back(currentRingPoint);
+
+		vector3 nextRingPoint = glm::rotateZ(currentRing[i], glm::radians(delta));
+		nextRing.push_back(nextRingPoint);
+
+		theta += delta;
+
+		
+	}
+
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		AddQuad(currentRing[i], currentRing[(i + 1) % a_nSubdivisions], nextRing[i], nextRing[(i + 1) % a_nSubdivisions]);
+	}
+	*/
+	std::vector<vector3> positionList = BTXs::GenerateSphere(a_fRadius, a_nSubdivisions);
+	matrix4 a_m4Transform = glm::translate(IDENTITY_M4, vector3(0.0f, 0.0f, 0.0f));
+	for (uint i = 0; i < positionList.size(); i++)
+	{
+		positionList[i] = a_m4Transform * vector4(positionList[i], 1.0f);
+	}
+	for (size_t i = 0; i < positionList.size(); i++)
+	{
+		AddTri(positionList[i], positionList[(i + 1) % positionList.size()], positionList[(i + 2) % positionList.size()]);
+	}
 	// -------------------------------
 
 	// Adding information about color

@@ -16,15 +16,12 @@ Update: 2021/02
 
 using namespace BTX;
 
+#include "MyMesh.h"
+
 class Application
 {
-	matrix4 m_m4Model = IDENTITY_M4;
-	quaternion m_qOrientation;
-	vector3 m_v3Rotation;
-	String m_sSteve = "Minecraft\\Steve.obj";
-
-
-
+	uint m_uMeshCount = 10;
+	MyMesh* m_pMesh;
 private:
 	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
 	static ImGuiObject gui; //GUI object

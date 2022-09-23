@@ -55,8 +55,10 @@ void Application::ProcessKeyReleased(sf::Event a_event)
 	case sf::Keyboard::Add:
 		break;
 	case sf::Keyboard::Subtract:
+		m_pEntityMngr->RemoveEntity(-1);
 		break;
 	case sf::Keyboard::Space:
+		m_pEntityMngr->ApplyForce(vector3(0.0f, 1.0f, 0.0f), "Steve");
 		break;
 	case sf::Keyboard::LShift:
 	case sf::Keyboard::RShift:
@@ -104,64 +106,28 @@ void Application::ProcessKeyboard(void)
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
 		m_pCameraMngr->MoveVertical(fSpeed);
 #pragma endregion
-	//scales the orientation quaternion based on which keys the user is pressing
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::X))
+#pragma region Character Position
+	float fDelta = m_pSystem->GetDeltaTime(0);
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 	{
-		if (fMultiplier) {
-			m_v3Rotation.x -= 1.0f;
-
-		
-			quaternion q1 = glm::angleAxis(-0.1f, vector3(1.0f, 0.0f, 0.0f));
-			m_qOrientation = m_qOrientation * q1;
-		}
-			
-		else
-		{
-			m_v3Rotation.x += 1.0f;
-
-			quaternion q1 = glm::angleAxis(0.1f, vector3(1.0f, 0.0f, 0.0f));
-			m_qOrientation = m_qOrientation * q1;
-		}
-			
+		m_pEntityMngr->ApplyForce(vector3(-2.0f * fDelta, 0.0f, 0.0f), "Steve");
 	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Y))
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
 	{
-		if (fMultiplier) {
-			m_v3Rotation.y -= 1.0f;
-
-			quaternion q1 = glm::angleAxis(-0.1f, vector3(0.0f, 1.0f, 0.0f));
-			m_qOrientation = m_qOrientation * q1;
-		}
-
-		else
-		{
-			m_v3Rotation.y += 1.0f;
-
-			quaternion q1 = glm::angleAxis(0.1f, vector3(0.0f, 1.0f, 0.0f));
-			m_qOrientation = m_qOrientation * q1;
-		}
+		m_pEntityMngr->ApplyForce(vector3(2.0f * fDelta, 0.0f, 0.0f), "Steve");
 	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 	{
-		if (fMultiplier) {
-			m_v3Rotation.z -= 1.0f;
-
-			quaternion q1 = glm::angleAxis(-0.1f, vector3(0.0f, 0.0f, 1.0f));
-			m_qOrientation = m_qOrientation * q1;
-		}
-
-		else
-		{
-			m_v3Rotation.z += 1.0f;
-
-			quaternion q1 = glm::angleAxis(0.1f, vector3(0.0f, 0.0f, 1.0f));
-			m_qOrientation = m_qOrientation * q1;
-		}
+		m_pEntityMngr->ApplyForce(vector3(0.0f, 0.0f, -2.0f * fDelta), "Steve");
 	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::R))
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 	{
-		m_v3Rotation = vector3(0.0f);
+		m_pEntityMngr->ApplyForce(vector3(0.0f, 0.0f, 2.0f * fDelta), "Steve");
 	}
+#pragma endregion
 }
 //Mouse
 void Application::ProcessMousePressed(sf::Event a_event)
