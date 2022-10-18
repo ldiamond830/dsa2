@@ -37,6 +37,7 @@ void Application::Update(void)
 	m_pEntityMngr->AddEntityToRenderList(-1, true);
 
 	//Add objects to the Manager
+	/*
 	uint nCount = 0;
 	int nRange = 42;
 	for (int j = -nRange; j < nRange; j += 2)
@@ -47,6 +48,19 @@ void Application::Update(void)
 			nCount++;
 		}
 	}
+	*/
+	//hat
+	m_pMyMeshMngr->AddConeToRenderList(glm::translate(vector3(0, 2, -10)));
+	//head
+	m_pMyMeshMngr->AddSphereToRenderList(glm::translate(vector3(0, 1, -10)) * glm::scale(vector3(0.8f, 0.8f, 0.8f)));
+	//body
+	m_pMyMeshMngr->AddCubeToRenderList(glm::translate(vector3(0, 0, -10)));
+	//legs
+	m_pMyMeshMngr->AddCubeToRenderList(glm::translate(vector3(-0.5f, -1.0f, -10.0f)) * glm::scale(vector3(0.5f, 1.0f, 1.0f)));
+	m_pMyMeshMngr->AddCubeToRenderList(glm::translate(vector3(0.5f, -1.0f, -10.0f)) * glm::scale(vector3(0.5f, 1.0f, 1.0f)));
+	//arms
+	m_pMyMeshMngr->AddCubeToRenderList(glm::translate(vector3(-1.0f, 0.5f, -10.0f)) * glm::scale(vector3(1.0f, 0.5f, 1.0f)));
+	m_pMyMeshMngr->AddCubeToRenderList(glm::translate(vector3(1.0f, 0.5f, -10.0f)) * glm::scale(vector3(1.0f, 0.5f, 1.0f)));
 }
 void Application::Display(void)
 {
