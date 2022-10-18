@@ -43,7 +43,7 @@ void Application::Display(void)
 	static float delta = 0;
 
 	//moves the object to the right and up and down based on a sin curve
-	matrix4 m4Movement = glm::translate(IDENTITY_M4, vector3(delta, glm::sin(delta), 0));
+	matrix4 m4Movement = glm::translate(IDENTITY_M4, vector3(0,0, delta));
 	//increments the value
 	delta += 0.1;
 

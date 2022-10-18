@@ -61,22 +61,26 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Init();
 
 	// Replace this with your code
-	vector3 center(0, 0, 0);
-	vector3 top(0, 0, a_fHeight);
+	// initializing variables
+	// 
+	//centers the object at 0,0,0
+	vector3 bottom(0, 0, -a_fHeight/2);
+	vector3 top(0, 0, a_fHeight/2);
 
 	std::vector<vector3 > edgePoints;
 	GLfloat theta = 0;
 	GLfloat delta = static_cast<GLfloat>(2.0 * PI / static_cast<GLfloat>(a_nSubdivisions));
+	//generates a circle of points and stores them in a list
 	for (int i = 0; i < a_nSubdivisions; i++)
 	{
-		vector3 temp = vector3(cos(theta) * a_fRadius, sin(theta) * a_fRadius, 0.0f);
+		vector3 temp = vector3(cos(theta) * a_fRadius, sin(theta) * a_fRadius, bottom.z);
 		theta += delta;
 		edgePoints.push_back(temp);
 	}
-
+	//connects all the points of the cone with tris
 	for (int i = 0; i < a_nSubdivisions; i++)
 	{
-		AddTri(center, edgePoints[(i + 1) % a_nSubdivisions], edgePoints[i]);
+		AddTri(bottom, edgePoints[(i + 1) % a_nSubdivisions], edgePoints[i]);
 		AddTri(top, edgePoints[i], edgePoints[(i + 1) % a_nSubdivisions]);
 	}
 	// -------------------------------
@@ -102,20 +106,23 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Init();
 
 	// Replace this with your code
-	vector3 topCircleCenter(0, 0, a_fHeight);
-	vector3 bottomCircleCenter(0, 0, 0);
+	//initializing variables
+	vector3 topCircleCenter(0, 0, a_fHeight/2);
+	vector3 bottomCircleCenter(0, 0, -a_fHeight/2);
 
 	std::vector<vector3 > bottomEdgePoints;
 	std::vector<vector3> topEdgePoints;
 	GLfloat theta = 0;
 	GLfloat delta = static_cast<GLfloat>(2.0 * PI / static_cast<GLfloat>(a_nSubdivisions));
+
+	//calcuates the position of two circles
 	for (int i = 0; i < a_nSubdivisions; i++)
 	{
-		vector3 temp = vector3(cos(theta) * a_fRadius, sin(theta) * a_fRadius, 0.0f);
+		vector3 temp = vector3(cos(theta) * a_fRadius, sin(theta) * a_fRadius, bottomCircleCenter.z);
 		bottomEdgePoints.push_back(temp);
 
 
-		temp = vector3(cos(theta) * a_fRadius, sin(theta) * a_fRadius, a_fHeight);
+		temp = vector3(cos(theta) * a_fRadius, sin(theta) * a_fRadius, topCircleCenter.z);
 		topEdgePoints.push_back(temp);
 
 		theta += delta;
@@ -127,9 +134,11 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 
 	for (int i = 0; i < a_nSubdivisions; i++)
 	{
+		//conects the points of each circle to their centers
 		AddTri(bottomCircleCenter, bottomEdgePoints[(i + 1) % a_nSubdivisions], bottomEdgePoints[i]);
 		AddTri(topCircleCenter, topEdgePoints[i],topEdgePoints[(i + 1) % a_nSubdivisions]);
 
+		//connects the edges of each circle with quads in order to complete the cylinder
 		AddQuad(bottomEdgePoints[i], bottomEdgePoints[(i + 1) % a_nSubdivisions],  topEdgePoints[i], topEdgePoints[(i + 1) % a_nSubdivisions]);
 		
 	}
@@ -162,6 +171,7 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Init();
 
 	// Replace this with your code
+	//initializing variables
 	std::vector<vector3> bottomInnerRing;
 	std::vector<vector3> bottomOuterRing;
 	std::vector<vector3> topInnerRing;
@@ -173,17 +183,17 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	//generates all points and stores them in several vectors
 	for (int i = 0; i < a_nSubdivisions; i++)
 	{
-		
-		vector3 innerPoint = vector3(cos(theta) * a_fInnerRadius, sin(theta) * a_fInnerRadius, 0.0f);
+		//generates the location of each point in all four rings
+		vector3 innerPoint = vector3(cos(theta) * a_fInnerRadius, sin(theta) * a_fInnerRadius, -a_fHeight/2);
 		bottomInnerRing.push_back(innerPoint);
 
-		vector3 outerPoint = vector3(cos(theta) * a_fOuterRadius, sin(theta) * a_fOuterRadius, 0.0f);
+		vector3 outerPoint = vector3(cos(theta) * a_fOuterRadius, sin(theta) * a_fOuterRadius, -a_fHeight / 2);
 		bottomOuterRing.push_back(outerPoint);
 
-		innerPoint = vector3(cos(theta) * a_fInnerRadius, sin(theta) * a_fInnerRadius, a_fHeight);
+		innerPoint = vector3(cos(theta) * a_fInnerRadius, sin(theta) * a_fInnerRadius, a_fHeight/2);
 		topInnerRing.push_back(innerPoint);
 
-		outerPoint = vector3(cos(theta) * a_fOuterRadius, sin(theta) * a_fOuterRadius, a_fHeight);
+		outerPoint = vector3(cos(theta) * a_fOuterRadius, sin(theta) * a_fOuterRadius, a_fHeight/2);
 		topOuterRing.push_back(outerPoint);
 
 		theta += delta;
@@ -236,39 +246,142 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 	Release();
 	Init();
 
-
+	//initializing variables
 	float verticalTheta = 0.0f;
 	float horizontalTheta = 0.0f;
 	GLfloat verticalDelta = static_cast<GLfloat>(2.0 * PI / static_cast<GLfloat>(a_nSubdivisionsA));
 	GLfloat horizontalDelta = static_cast<GLfloat>(2.0 * PI / static_cast<GLfloat>(a_nSubdivisionsB));
-	// Replace this with your code
+
+	/*
+	//another method I tried that also doesn't work but this one doesn't work even more
+	std::vector<vector3>firstRing;
+
+
+	std::vector<std::vector<vector3>> rings;
+	
+	for (int i = 0; i < a_nSubdivisionsB; i++)
+	{
+		firstRing.push_back(vector3(cos(horizontalTheta) * a_fOuterRadius / 2, sin(horizontalTheta) * a_fOuterRadius, a_fInnerRadius + a_fOuterRadius));
+		horizontalTheta += horizontalDelta;
+	}
+
+	for (int i = 0; i < a_nSubdivisionsA - 1; i++) 
+	{
+		std::vector<vector3> tempRing;
+		for (int j = 0; j < a_nSubdivisionsB; j++) 
+		{
+			vector4 temp = vector4(firstRing[i].x, firstRing[i].y, firstRing[i].z, 1.0f);
+			temp *= ToMatrix4(glm::rotate(IDENTITY_M4, verticalTheta, vector3(0.0f, 0.0f, 1.0f)));
+			vector3 cast = vector3(temp.x, temp.y, temp.z);
+			tempRing.push_back(cast);
+		}
+		rings.push_back(tempRing);
+		verticalTheta += verticalDelta;
+		
+	}
+
+	for (int i = 0; i < a_nSubdivisionsB; i++)
+	{
+		AddTri(vector3(0.0, 0.0, a_fInnerRadius + a_fOuterRadius), firstRing[i], firstRing[(i + 1) % a_nSubdivisionsB]);
+
+	}
+
+	for (int i = 0; i < a_nSubdivisionsA; i++) {
+		for (int j = 0; j < a_nSubdivisionsB; j++) {
+			AddTri(vector3(0.0, 0.0, a_fInnerRadius + a_fOuterRadius), rings[i][j], rings[i][(j + 1) % a_nSubdivisionsB]);
+		}
+	}
+	
+	horizontalTheta = 0.0f;
+	for (int i = 0; i < a_nSubdivisionsA; i++)
+	{
+		if (i == 0) {
+			rings.push_back(firstRing);
+		}
+		else {
+			std::vector<vector3> tempRing;
+			for (int j = 0; j < a_nSubdivisionsB; j++) {
+				
+				matrix4 rotationMatrix = glm::rotate(IDENTITY_M4, horizontalTheta, vector3(0.0f, 0.0f, 1.0f));
+				vector4 newPoint = vector4(firstRing[j].x, firstRing[j].y, firstRing[j].z, 1.0f) * rotationMatrix;
+
+				tempRing.push_back(static_cast<vector3>(newPoint));
+
+				horizontalTheta += horizontalDelta;
+			}
+
+			rings.push_back(tempRing);
+		}
+		
+		
+	}
+
+	for (int i = 0; i < a_nSubdivisionsA; i++)
+	{
+		for (int j = 0; j < a_nSubdivisionsB; j++)
+		{
+			AddQuad(rings[i][j], rings[i][(j + 1) % a_nSubdivisionsB], rings[(i + 1) % a_nSubdivisionsB][j], rings[(i + 1) % a_nSubdivisionsB][(j + 1) % a_nSubdivisionsB]);
+		}
+	}
+	*/
+	
+	
+	
+	
+	
 	std::vector<std::vector<vector3>> rings;
 	std::vector<vector3> ringCenters;
 	
+	//initializes vector
 	for (int i = 0; i < a_nSubdivisionsA; i++)
 	{
 		rings.push_back (std::vector<vector3>());
 	}
 
+	//creates a point at the center of each ring around the torus
 	for (int i = 0; i < a_nSubdivisionsA; i++)
 	{
-		vector3 ringCenter = vector3(cos(verticalTheta) * a_fInnerRadius, sin(verticalTheta) * a_fInnerRadius, 0.0f);
+		vector3 ringCenter = vector3(cos(verticalTheta) * (a_fOuterRadius - a_fInnerRadius), sin(verticalTheta) * (a_fOuterRadius - a_fInnerRadius), 0.0f);
 
 		verticalTheta += verticalDelta;
 		ringCenters.push_back(ringCenter);
 	}
 
+	//verticalTheta = 0.0f;
+
+	//generates the points around each circle center
 	for (int i = 0; i < a_nSubdivisionsA; i++) 
 	{
-		for (int j = 0; j < a_nSubdivisionsB; j++) 
+		
+			
+		for (int j = 0; j < a_nSubdivisionsB; j++)
 		{
-			vector3 point = ringCenters[i] + vector3(cos(horizontalTheta) * a_fInnerRadius, sin(horizontalTheta) * a_fInnerRadius, 0.0f);
-			rings[i].push_back(point);
+			float xPos = ringCenters[i].x + cos(horizontalTheta) * (a_fOuterRadius - a_fInnerRadius);
+			float yPos = (ringCenters[i].y + (sin(horizontalTheta) * a_fOuterRadius));
+			float zPos = ringCenters[i].z + cos(horizontalTheta) * (a_fOuterRadius - a_fInnerRadius);
+		
+
+			rings[i].push_back(vector3(xPos, yPos, zPos));
+
+			//rotates around the circle
 			horizontalTheta += horizontalDelta;
+
 		}
+			horizontalTheta = 0.0f;
+			
 
 	}
 	
+	//connects each adjecent ring with quads
+	for (int i = 0; i < a_nSubdivisionsA; i++)
+	{
+		for (int j = 0; j < a_nSubdivisionsB; j++)
+		{
+				AddQuad(rings[i][(j + 1) % a_nSubdivisionsB], rings[i][j], rings[(i + 1) % a_nSubdivisionsA][(j + 1) % a_nSubdivisionsB], rings[(i + 1) % a_nSubdivisionsA][j]);
+			
+		}
+
+	}
 	
 	
 	// -------------------------------
@@ -294,42 +407,72 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	Release();
 	Init();
 
-	// Replace this with your code
-	/*
-	std::vector<vector3> currentRing;
-	std::vector<vector3> nextRing;
+	vector3 top = vector3(0.0f, 0.0f, a_fRadius/2);
+	vector3 bottom = vector3(0.0f, 0.0f, -a_fRadius/2 );
 
-	GLfloat theta = 0;
+	//radius of the starting ring
+	float currentRadius = a_fRadius / 2;
+	float radiusDelta = a_fRadius / a_nSubdivisions;
+	
+	//variables to sepates each ring along the sphere on the z axis
+	float heightDelta = (top.z - bottom.z)/(a_nSubdivisions + 1);
+	float currentHeight = a_fRadius/2;
+
+	//list to store each position
+	std::vector<std::vector<vector3>> rings;
+	
+	float theta = 0.0f;
 	GLfloat delta = static_cast<GLfloat>(2.0 * PI / static_cast<GLfloat>(a_nSubdivisions));
+	//initializes vector
 	for (int i = 0; i < a_nSubdivisions; i++)
 	{
-		vector3 currentRingPoint = vector3(cos(theta) * a_fRadius, sin(theta) * a_fRadius, 0.0f);
-		currentRing.push_back(currentRingPoint);
+		rings.push_back(std::vector<vector3>());
+	}
+	
 
-		vector3 nextRingPoint = glm::rotateZ(currentRing[i], glm::radians(delta));
-		nextRing.push_back(nextRingPoint);
+	for (float i = 0; i < a_nSubdivisions; i++) 
+	{
+		//moves the height of the new ring being created down from the bottom to the top
+		currentHeight -= heightDelta;
+		for (int j = 0; j < a_nSubdivisions; j++) 
+		{
+			//generates a new point
+			rings[i].push_back(vector3(glm::cos(theta) * currentRadius, glm::sin(theta) * currentRadius, currentHeight));
+			
+			theta += delta;
+		}
+		theta = 0;
 
-		theta += delta;
+		//rings get wider towards the center of the sphere
+		if (i < a_nSubdivisions / 2) {
+			currentRadius += radiusDelta;
+		}
+		else {
+			currentRadius -= radiusDelta; 
+		}
+		
+	}
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		//creates tris between the top and bottom points and closest rings
+		AddTri(top, rings[0][i], rings[0][(i + 1) % a_nSubdivisions]);
+		AddTri(bottom, rings[rings.size() - 1][(i + 1) % a_nSubdivisions], rings[rings.size() - 1][i]);
+	}
 
+	//connects each ring with quads
+	for (int i = 0; i < a_nSubdivisions - 1; i++) 
+	{
+		for (int j = 0; j < a_nSubdivisions; j++) {
+			
+			
+			AddQuad( rings[(i + 1) % a_nSubdivisions][j], rings[(i + 1) % a_nSubdivisions][(j + 1) % a_nSubdivisions], rings[i][j], rings[i][(j + 1) % a_nSubdivisions]);
+			
+		}
 		
 	}
 
-	for (int i = 0; i < a_nSubdivisions; i++) {
-		AddQuad(currentRing[i], currentRing[(i + 1) % a_nSubdivisions], nextRing[i], nextRing[(i + 1) % a_nSubdivisions]);
-	}
-	*/
-	std::vector<vector3> positionList = BTXs::GenerateSphere(a_fRadius, a_nSubdivisions);
-	matrix4 a_m4Transform = glm::translate(IDENTITY_M4, vector3(0.0f, 0.0f, 0.0f));
-	for (uint i = 0; i < positionList.size(); i++)
-	{
-		positionList[i] = a_m4Transform * vector4(positionList[i], 1.0f);
-	}
-	for (size_t i = 0; i < positionList.size(); i++)
-	{
-		AddTri(positionList[i], positionList[(i + 1) % positionList.size()], positionList[(i + 2) % positionList.size()]);
-	}
-	// -------------------------------
 
+	
 	// Adding information about color
 	CompleteMesh(a_v3Color);
 	CompileOpenGL3X();

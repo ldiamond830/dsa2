@@ -2,7 +2,7 @@
 void Application::InitVariables(void)
 {
 	////Change this to your name and email
-	m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Lucas Diamond - lgd1649@g.rit.edu";
 	vector3 v3Position(0.0f, 0.0f, 10.0f);
 	vector3 v3Target = ZERO_V3;
 	vector3 v3Upward = AXIS_Y;
@@ -50,6 +50,8 @@ void Application::Display(void)
 	// draw a skybox
 	m_pModelMngr->AddSkyboxToRenderList();
 
+	static float check = 0.01f;
+
 	//calculate view and projection
 	switch (m_uProjection)
 	{
@@ -59,21 +61,39 @@ void Application::Display(void)
 		break;
 	case 2:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPerspective(false);
+
 		break;
 	case 3:
 		m_pCamera->ResetCamera();
+
+		m_pCamera->SetPosition(vector3(20.0f, 0.0f, 0.0f));
+		m_pCamera->SetUp(AXIS_Z * -1);
+		
 		break;
 	case 4:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPositionTargetAndUpward(vector3(0.0f, 0.0f, -15.0f), vector3(0.0f, 0.0f, -10.0f), AXIS_Y);
+		
+		
+
 		break;
 	case 5:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPosition(vector3(0.0f, 0.0f, -15.0f));
+		m_pCamera->SetNearFar(vector2(6.0f, 20.0f));
+		
+		
 		break;
 	case 6:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPositionTargetAndUpward(vector3(0.0f, 0.0f, -13.0f), vector3(0.0f, 0.0f, -10.0f), AXIS_Y);
+		m_pCamera->SetNearFar(vector2(0.01f, 10));
+		
 		break;
 	case 7:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetUp(AXIS_Y * -1);
 		break;
 	}
 
