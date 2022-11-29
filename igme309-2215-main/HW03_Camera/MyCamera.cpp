@@ -5,6 +5,8 @@ void MyCamera::SetPositionTargetAndUpward(vector3 a_v3Position, vector3 a_v3Targ
 {
 	//TODO:: replace the super call with your functionality
 	//Tip: Changing any positional vector forces you to calculate new directional ones
+	
+	//sets each value to the one being passed in in AppClass.cpp
 	m_v3Position = a_v3Position;
 	m_v3Target = a_v3Target;
 	m_v3Upward = a_v3Upward;
@@ -23,6 +25,8 @@ void MyCamera::MoveForward(float a_fDistance)
 	//		 in the _Binary folder you will notice that we are moving 
 	//		 backwards and we never get closer to the plane as we should 
 	//		 because as we are looking directly at it.
+	
+	//updates position and target based on where the camera's current forward vector is
 	m_v3Position += m_v3Forward * a_fDistance;
 	m_v3Target += m_v3Forward * a_fDistance;
 
@@ -32,11 +36,14 @@ void MyCamera::MoveForward(float a_fDistance)
 void MyCamera::MoveVertical(float a_fDistance)
 {
 	//Tip:: Look at MoveForward
+
+	//updates position and target based on where the camera's current upward vector is
 	m_v3Position += m_v3Upward * a_fDistance;
 	m_v3Target += m_v3Upward * a_fDistance;
 }
 void MyCamera::MoveSideways(float a_fDistance)
 {
+	//updates position and target based on where the camera's current rightward vector is
 	m_v3Position += m_v3Rightward * a_fDistance;
 	m_v3Target += m_v3Rightward * a_fDistance;
 }
@@ -48,15 +55,31 @@ void MyCamera::CalculateView(void)
 	//		 it will receive information from the main code on how much these orientations
 	//		 have change so you only need to focus on the directional and positional 
 	//		 vectors. There is no need to calculate any right click process or connections.
-	
-	quaternion quatForward = glm::angleAxis( m_v3PitchYawRoll.x, m_v3Position);
-	quaternion quatUpWard = glm::angleAxis(m_v3PitchYawRoll.y, m_v3Position);
+	// 
+	//gets the pitch rotation
+	quaternion quatPitch = glm::angleAxis( m_v3PitchYawRoll.x, m_v3Rightward);
+	//gets the yaw rotation
+	quaternion quatYaw = glm::angleAxis(m_v3PitchYawRoll.y, m_v3Upward);
+	//combines into a single quaternion
+	quaternion combination = glm::cross(quatPitch , quatYaw);
 
-	m_v3Forward = quatForward * vector4(m_v3Forward, 1.0f);
-	m_v3Upward = quatUpWard * vector4(m_v3Upward, 1.0f);
+	//roates the forward directional vector
+	m_v3Forward = glm::rotate(combination, m_v3Forward);
+		
+	//this change makes the camera work like a flight sim rather than an fps where moving up is variable rather than always taking you straight up
+	//m_v3Upward = glm::rotate(combination, m_v3Upward);
+	// 
+	//cross product of the two vectors will give the right vector
 	m_v3Rightward = glm::cross(m_v3Forward, m_v3Upward);
 
+	//sets the target and above based on the new forward and upward
+	m_v3Target = m_v3Forward + m_v3Position;
+	m_v3Above = m_v3Position + m_v3Upward;
+
 	m_m4View = glm::lookAt(m_v3Position, m_v3Target, m_v3Upward);
+
+	//keeps rotation amount managable for user
+	m_v3PitchYawRoll *= 0.5f;
 }
 //You can assume that the code below does not need changes unless you expand the functionality
 //of the class or create helper methods, etc.

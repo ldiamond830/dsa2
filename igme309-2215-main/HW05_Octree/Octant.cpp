@@ -18,16 +18,26 @@ Octant::Octant(uint a_nMaxLevel, uint a_nIdealEntityCount)
 
 	m_pRoot = this;
 	m_lChild.clear();
-
+	
 	//create a rigid body that encloses all the objects in this octant, it necessary you will need
 	//to subdivide the octant based on how many objects are in it already an how many you IDEALLY
 	//want in it, remember each subdivision will create 8 children for this octant but not all children
 	//of those children will have children of their own
-
-	//The following is a made-up size, you need to make sure it is measuring all the object boxes in the world
 	std::vector<vector3> lMinMax;
-	lMinMax.push_back(vector3(-50.0f));
-	lMinMax.push_back(vector3(25.0f));
+	
+	
+	
+
+	for (uint i = 0; i < m_pEntityMngr->GetEntityCount(); i++)
+	{
+		RigidBody* temp = m_pEntityMngr->GetEntity(i)->GetRigidBody();
+		//m_EntityList.push_back(m_pEntityMngr->GetEntityIndex());
+		lMinMax.push_back(temp->GetMaxGlobal());
+		lMinMax.push_back(temp->GetMinGlobal());
+		
+	}
+
+	
 	RigidBody pRigidBody = RigidBody(lMinMax);
 
 
@@ -48,11 +58,41 @@ bool Octant::IsColliding(uint a_uRBIndex)
 	//If the index given is larger than the number of elements in the bounding object there is no collision
 	//As the Octree will never rotate or scale this collision is as easy as an Axis Alligned Bounding Box
 	//Get all vectors in global space (the octant ones are already in Global)
-	return true; // for the sake of startup code
+	bool bColliding = true;
+	
+		RigidBody* currentEntityBody = m_pEntityMngr->GetEntity(a_uRBIndex)->GetRigidBody();
+		vector3 otherMin = currentEntityBody->GetMinGlobal();
+		vector3 otherMax = currentEntityBody->GetMaxGlobal();
+
+		if (this->m_v3Max.x < otherMin.x) //this to the right of other
+			bColliding = false;
+		if (this->m_v3Min.x > otherMax.x) //this to the left of other
+			bColliding = false;
+
+		if (this->m_v3Max.y < otherMin.y) //this below of other
+			bColliding = false;
+		if (this->m_v3Min.y > otherMax.y) //this above of other
+			bColliding = false;
+
+		if (m_v3Max.z < otherMin.z) //this behind of other
+			bColliding = false;
+		if (m_v3Min.z > otherMax.z) //this in front of other
+			bColliding = false;
+	
+	
+
+	return bColliding; 
 }
 void Octant::Display(uint a_nIndex, vector3 a_v3Color)
 {
 	// Display the specified octant
+	m_pModelMngr->ClearRenderList();
+
+	if (a_nIndex > m_lChild.size()) {
+		m_pRoot->Display(C_YELLOW);
+	}
+
+	m_pModelMngr->AddWireCubeToRenderList(glm::translate(IDENTITY_M4, m_lChild[a_nIndex]->m_v3Center) * glm::scale(vector3(m_lChild[a_nIndex]->m_fSize)), a_v3Color);
 }
 void Octant::Display(vector3 a_v3Color)
 {
@@ -60,6 +100,13 @@ void Octant::Display(vector3 a_v3Color)
 	//even if other objects are created
 	m_pModelMngr->AddWireCubeToRenderList(glm::translate(IDENTITY_M4, m_v3Center) *
 		glm::scale(vector3(m_fSize)), a_v3Color);
+
+	if (m_uChildren != 0) {
+		for (int i = 0; i < 8; i++) {
+			m_pChild[i]->Display();
+		}
+		
+	}
 }
 void Octant::Subdivide(void)
 {
@@ -71,12 +118,81 @@ void Octant::Subdivide(void)
 	if (m_uChildren != 0)
 		return;
 
+	
+	//m_uOctantCount += 8;
+	m_uChildren = 8;
+
 	//Subdivide the space and allocate 8 children
+	//top left front
+	m_pChild[0] = (new Octant(vector3(m_v3Center.x - (m_fSize / 4), m_v3Center.y + (m_fSize/4), m_v3Center.z + (m_fSize/4)), m_fSize / 2));
+	
+
+	//top right front
+	m_pChild[1] = (new Octant(vector3(m_v3Center.x + (m_fSize / 4), m_v3Center.y + (m_fSize / 4), m_v3Center.z + (m_fSize / 4)), m_fSize / 2));
+	
+	//bottom left front
+	m_pChild[2] = (new Octant(vector3(m_v3Center.x - (m_fSize / 4), m_v3Center.y - (m_fSize / 4), m_v3Center.z + (m_fSize / 4)), m_fSize / 2));
+	
+
+	//bottom right front
+	m_pChild[3] = (new Octant(vector3(m_v3Center.x + (m_fSize / 4), m_v3Center.y - (m_fSize / 4), m_v3Center.z + (m_fSize / 4)), m_fSize / 2));
+	
+	
+
+	//top left back
+	m_pChild[4] = (new Octant(vector3(m_v3Center.x - (m_fSize / 4), m_v3Center.y + (m_fSize / 4), m_v3Center.z - (m_fSize / 4)), m_fSize / 2));
+	
+	
+
+	//top right back
+	m_pChild[5] = (new Octant(vector3(m_v3Center.x + (m_fSize / 4), m_v3Center.y + (m_fSize / 4), m_v3Center.z - (m_fSize / 4)), m_fSize / 2));
+	
+	
+
+	//bottom left back
+	m_pChild[6] = (new Octant(vector3(m_v3Center.x - (m_fSize / 4), m_v3Center.y - (m_fSize / 4), m_v3Center.z - (m_fSize / 4)), m_fSize / 2));
+	
+	
+
+	//bottom right back
+	m_pChild[7] = (new Octant(vector3(m_v3Center.x + (m_fSize / 4), m_v3Center.y - (m_fSize / 4), m_v3Center.z - (m_fSize / 4)), m_fSize / 2));
+	
+	
+
+	//populates variables not handled by constructor for each child
+	for (uint i = 0; i < 8; i++) {
+		m_pChild[i]->m_pParent = this;
+		m_pChild[i]->m_pRoot = m_pChild[i]->m_pParent->m_pRoot;
+		m_pChild[i]->m_uLevel = m_uLevel + 1;
+		m_pRoot->m_lChild.push_back(m_pChild[i]);
+	}
+	
+	//checks if the children need to be subdivided
+	if (m_uChildren != 0) {
+		for (uint i = 0; i < 8; i++) {
+			if (m_pChild[i]->ContainsAtLeast(m_uIdealEntityCount)) {
+				m_pChild[i]->Subdivide();
+			}
+		}
+	}
+	
+	
+	
+	//m_pRoot->m_lChild.push_back();
 }
 bool Octant::ContainsAtLeast(uint a_nEntities)
 {
 	//You need to check how many entity objects live within this octant
-	return false; //return something for the sake of start up code
+	uint count = 0;
+	for (uint i = 0; i < m_pEntityMngr->GetEntityCount(); i++) {
+		if (IsColliding(i)) {
+			
+			count++;
+			//m_pEntityMngr->GetEntity(i).
+		}
+	}
+
+	return count > a_nEntities; 
 }
 void Octant::AssignIDtoEntity(void)
 {
@@ -160,7 +276,8 @@ void Octant::ConstructTree(uint a_nMaxLevel)
 	m_EntityList.clear();//Make sure the list of entities inside this octant is empty
 	KillBranches();
 	m_lChild.clear();
-
+	//stores the root in the child list so it can be displayed by index
+	m_lChild.push_back(m_pRoot);
 	//If we have more entities than those that we ideally want in this octant we subdivide it
 	if (ContainsAtLeast(m_uIdealEntityCount))
 	{
@@ -181,6 +298,9 @@ Octant::Octant(vector3 a_v3Center, float a_fSize)
 	m_v3Max = m_v3Center + (vector3(m_fSize) / 2.0f);
 
 	m_uOctantCount++;
+
+	
+	//AssignIDtoEntity();//Add octant ID to Entities
 }
 Octant::Octant(Octant const& other)
 {

@@ -3,10 +3,131 @@ using namespace BTX;
 //Allocation
 uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 {
-	//TODO: Calculate the SAT algorithm I STRONGLY suggest you use the
-	//Real Time Collision detection algorithm for OBB here but feel free to
-	//implement your own solution.
-	return BTXs::eSATResults::SAT_NONE;
+	// TODO: Calculate the SAT algorithm I STRONGLY suggest you use the
+		//Real Time Collision detection algorithm for OBB here but feel free to
+		//implement your own solution.
+	float epsilon = 0.00001;
+	float ra;
+	float rb;
+	matrix3 R;
+	matrix3 AbsR;
+
+	matrix3 modelMatrix = this->GetModelMatrix();
+	matrix3 otherModelMatrix = a_pOther->GetModelMatrix() ;
+
+	//calculating matrix to hold the coordinate frame of this and the other rigid body
+	for (uint i = 0; i < 3; i++) {
+		for (uint j = 0; j < 3; j++) {
+			R[i][j] = glm::dot(modelMatrix[i], otherModelMatrix[j]);
+		}
+	}
+
+	//vector between this and other
+	vector3 t = a_pOther->GetCenterGlobal() - this->GetCenterGlobal();
+	//converts t to the coordinate frame of this object
+	t = vector3(glm::dot(t, modelMatrix[0]), glm::dot(t, modelMatrix[1]), glm::dot(t, modelMatrix[2]));
+
+	//takes absolute value of matrix and adds epsilon to get AbsR
+	for (uint i = 0; i < 3; i++) {
+		for (uint j = 0; j < 3; j++) {
+			
+			AbsR[i][j] = glm::abs(R[i][j]) + epsilon;
+		}
+	}
+	//variables to store the half widths to avoid using a function call every time
+	vector3 otherHalfWidth = a_pOther->GetHalfWidth();
+	vector3 halfWidth = this->GetHalfWidth();
+
+	//test axes L = A0, L = A1, L = A2
+	for (uint i = 0; i < 3; i++) {
+		ra = halfWidth[i];
+		rb = otherHalfWidth[0] * AbsR[i][0] + otherHalfWidth[1] * AbsR[i][1] + otherHalfWidth[2] * AbsR[i][2];
+
+		if (glm::abs(t[i]) > ra + rb) {
+			return 0;
+		}
+
+	}
+
+	//test axes L = B0, B1, B2
+	for (uint i = 0; i < 3; i++) 
+	{
+		ra = halfWidth[0] * AbsR[0][i] + halfWidth[1]
+			* AbsR[1][i] + halfWidth[2] * AbsR[2][i];
+		rb = otherHalfWidth[i];
+		if (glm::abs(t[0] * R[0][i] + t[1] * R[1][i] + t[2] * R[2][i]) > ra + rb) 
+		{
+			return 0;
+		}
+	}
+
+	// Text axis A0 x B0
+	ra = halfWidth[1] * AbsR[2][0] + halfWidth[2] * AbsR[1][0];
+	rb = otherHalfWidth[1] * AbsR[0][2] + otherHalfWidth[2] * AbsR[0][1];
+	if (glm::abs(t[2] * R[1][0] - t[1] * R[2][0]) > ra + rb) {
+		return 0;
+	}
+
+	// test axis L = A0 X B1
+	ra = halfWidth[1] * AbsR[2][1] + halfWidth[2] * AbsR[1][1];
+	rb = otherHalfWidth[0] * AbsR[0][2] + otherHalfWidth[2] * AbsR[0][0];
+	if (glm::abs(t[2] * R[1][1] - t[1] * R[2][1]) > ra + rb) {
+		return 0;
+	}
+
+	//Test axis L = A0 X B2
+	ra = halfWidth[1] * AbsR[2][2] + halfWidth[2] * AbsR[1][2];
+	rb = otherHalfWidth[0] * AbsR[0][1] + otherHalfWidth[1] * AbsR[0][0];
+	if (glm::abs(t[2] * R[1][2] - t[1] * R[2][2]) > ra+rb) {
+		return 0;
+	}
+
+	
+	
+	//test axis L = A1 x B0
+	ra = halfWidth[0] * AbsR[2][0] + halfWidth[2] * AbsR[0][0];
+	rb = otherHalfWidth[1] * AbsR[1][2] + otherHalfWidth[2] * AbsR[1][1];
+	if (glm::abs(t[0] * R[2][0] - t[2] * R[0][0]) > ra + rb) {
+		return 0;
+	}
+
+	//test axis L = A1 x B1
+	ra = halfWidth[0] * AbsR[2][1] + halfWidth[2] * AbsR[0][1];
+	rb = otherHalfWidth[0] * AbsR[1][2] + otherHalfWidth[2] * AbsR[1][0];
+	if (glm::abs(t[0] * R[2][1] - t[2] * R[0][1]) > ra + rb) {
+		return 0;
+	}
+
+	//Test Axis L = A1 x B2
+	ra = halfWidth[0] * AbsR[2][2] + halfWidth[2] * AbsR[0][2];
+	rb = otherHalfWidth[0] * AbsR[1][1] + otherHalfWidth[1] * AbsR[1][0];
+	if (glm::abs(t[0] * R[2][2] - t[2] * R[0][2]) > ra + rb) {
+		return 0;
+	}
+
+	//Test axis L = A2 x B0
+	ra = halfWidth[0] * AbsR[1][0] + halfWidth[1] * AbsR[0][0];
+	rb = otherHalfWidth[1] * AbsR[2][2] + otherHalfWidth[2] * AbsR[2][1];
+	if (glm::abs(t[1] * R[0][0] - t[0] * R[1][0]) > ra + rb) {
+		return 0;
+	}
+
+	//Test axis A2 x B1
+	ra = halfWidth[0] * AbsR[1][1] + halfWidth[1] * AbsR[0][1];
+	rb = otherHalfWidth[0] * AbsR[2][2] + otherHalfWidth[2] * AbsR[2][0];
+	if (glm::abs(t[1] * R[0][1] - t[0] * R[1][1]) > ra + rb) {
+		return 0;
+	}
+
+	//Test Axis L = A2 x B2
+	ra = halfWidth[0] * AbsR[1][2] + halfWidth[1] * AbsR[0][2];
+	rb = otherHalfWidth[0] * AbsR[2][1] + otherHalfWidth[1] * AbsR[2][0];
+	if (glm::abs(t[1] * R[0][2] - t[0] * R[1][2]) > ra + rb) {
+		return 0;
+	}
+
+	//retuns as colliding if there is no plane that can be drawn separating the two objects
+	return 1;
 }
 bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 {
@@ -21,7 +142,7 @@ bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 	{
 		uint nResult = SAT(a_pOther);
 
-		if (bColliding) //The SAT shown they are colliding
+		if (nResult == 1) //The SAT shown they are colliding
 		{
 			this->AddCollisionWith(a_pOther);
 			a_pOther->AddCollisionWith(this);
